@@ -16,14 +16,14 @@ def matchGermanAbbreviations(text1, text2):
             ",": r"[, ]*",
             "Bf": r"(Bf|Bahnhof)",
             "Hbf": r"(Hbf|Hauptbahnhof|Hauptbf.)"}
-        regex2 = text2
+        regex2 = "^" + text2 + "$"
         for abbrev in escapes:
             regex2 = regex2.replace(abbrev, escapes[abbrev])
         for abbrev in replacements:
             regex2 = regex2.replace(abbrev, replacements[abbrev])
         if re.match(regex2, text1):
             return True
-        regex1 = text1
+        regex1 = "^" + text1 + "$"
         for abbrev in escapes:
             regex1 = regex1.replace(abbrev, escapes[abbrev])
         for abbrev in replacements:
