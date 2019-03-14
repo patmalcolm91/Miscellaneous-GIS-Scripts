@@ -12,7 +12,7 @@ def matchGermanAbbreviations(text1, text2):
         replacements = {
             " ": r"[ \t\n]*",
             "-": r"(-| )",
-            ".": r"(.|[a-zäüöß]*[ ]*)",
+            ".": r"(.|[a-zäüöß]*[.]?[ ]*)",
             ",": r"[, ]*",
             "Bf": r"(Bf|Bahnhof)",
             "Hbf": r"(Hbf|Hauptbahnhof|Hauptbf.)"}
