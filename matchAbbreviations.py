@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 
-def matchGermanAbbreviations(text1, text2):
+@qgsfunction(args='auto', group='Custom', usesgeometry=False)
+def matchGermanAbbreviations(text1, text2, feature, parent):
     """Returns true if two strings match. Takes German abbreviations into account."""
     if text1 == text2:
             return True
@@ -32,5 +33,5 @@ def matchGermanAbbreviations(text1, text2):
             return True
     return False
 
-print(matchGermanAbbreviations("Bahnhof Straße","Bf.-Str."))
-print(matchGermanAbbreviations("Asbach, (b.Petershausen)","Asbach (b.Petershausen)"))
+# print(matchGermanAbbreviations("Bahnhof Straße","Bf.-Str."))
+# print(matchGermanAbbreviations("Asbach, (b.Petershausen)","Asbach (b.Petershausen)"))
