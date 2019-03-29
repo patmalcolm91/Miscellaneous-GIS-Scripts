@@ -18,6 +18,7 @@ FROM_FIELD = 'Startzelle'  # Desired name of field in output layer
 TO_FIELD = 'Zielzelle'  # Desired name of field in output layer
 FLOW_FIELD_OUTPUT = 'Personen'  # Desired name of field in output layer
 OUTPUT_LINELAYER_NAME = u'grobe Stroeme'  # Desired name of temporary output layer
+DISCARD_INTERNAL_TRIPS = True  # If true, trips starting and ending in the same aggregation zone will be ignored
 
 
 # END OF SETTINGS =============================================================================
@@ -115,7 +116,7 @@ for o in zoneList:
     for d in zoneList:
         if o is None or d is None or odMatrix[o][d] == 0:
             continue
-        if o == d:
+        if o == d and DISCARD_INTERNAL_TRIPS:
             continue
         pt1 = zoneCentroids[o]
         pt2 = zoneCentroids[d]
