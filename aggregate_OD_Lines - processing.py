@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingException)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
@@ -111,8 +111,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 startPoint = pl[0]
                 endPoint = pl[-1]
             except IndexError as err:
-                print('Unable to read geometry!')  # TODO: replace all error prints with exceptions
-                raise(err)
+                raise QgsProcessingException("Unable to read geometry from line layer.") from err
             flow = feature.attributes()[flowIdx]
             if flow is not None:
                 startZone = getContainingZone(startPoint)
