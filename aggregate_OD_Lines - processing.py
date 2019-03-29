@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFeature, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
@@ -10,7 +10,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
     FLOW_FIELD_OUTPUT = 'Flow'
-    OUTPUT_LINELAYER_NAME = 'Output'
+    OUTPUT_LINELAYER_NAME = 'Aggregated Lines'
  
     def __init__(self):
         super().__init__()
@@ -48,7 +48,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
             self.tr(self.FLOW_FIELD),
             'Flow',
             self.LINE_LAYER,
-            QgsProcessingParameterField.Numeric)
+            QgsProcessingParameterField.Numeric))
         self.addParameter(QgsProcessingParameterFeatureSource(
             self.AGGZONE_LAYER,
             self.tr(self.AGGZONE_LAYER),
@@ -57,10 +57,10 @@ class AggregateODLines(QgsProcessingAlgorithm):
             self.tr(self.AGGZNAME_FIELD),
             'Name',
             self.AGGZONE_LAYER,
-            QgsProcessingParameterField.Numeric)
+            QgsProcessingParameterField.String))
         self.addParameter(QgsProcessingParameterBoolean(self.DISCARD_INTERNAL_TRIPS,
             self.tr(self.DISCARD_INTERNAL_TRIPS),
-            QVariant(True))
+            QVariant(True)))
         self.addParameter(QgsProcessingParameterFeatureSink(
             self.OUTPUT_LINELAYER_NAME,
             self.tr(self.OUTPUT_LINELAYER_NAME),
@@ -68,14 +68,15 @@ class AggregateODLines(QgsProcessingAlgorithm):
  
     def processAlgorithm(self, parameters, context, feedback):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
-        flowField = self.parameterAsString(parameters, self.FLOW_FIELD)
+        flowField = self.parameterAsString(parameters, self.FLOW_FIELD, context)
         flowIdx = lineLayer.fields().indexFromName(flowField)
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
-        zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD)
+        zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
         zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
-        outputFields = [QgsField(self.FROM_FIELD, QVariant.String),
-                        QgsField(self.TO_FIELD,  QVariant.String),
-                        QgsField(self.FLOW_FIELD_OUTPUT, QVariant.Int)]
+        outputFields = QgsFields()
+        outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
+        outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
+        outputFields.append(QgsField(self.FLOW_FIELD_OUTPUT, QVariant.Int))
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT_LINELAYER_NAME, context,
                                                outputFields,
                                                lineLayer.wkbType(), lineLayer.sourceCrs())
@@ -139,12 +140,5 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 feat.setAttribute(self.TO_FIELD, d)
                 feat.setAttribute(self.FLOW_FIELD_OUTPUT, odMatrix[o][d])
                 sink.addFeature(feat, QgsFeatureSink.FastInsert)
- 
-##        features = source.getFeatures(QgsFeatureRequest())
-##        for feat in features:
-##            out_feat = QgsFeature()
-##            out_feat.setGeometry(feat.geometry())
-##            out_feat.setAttributes(feat.attributes())
-##            sink.addFeature(out_feat, QgsFeatureSink.FastInsert)
  
         return {self.OUTPUT_LINELAYER_NAME: dest_id}
