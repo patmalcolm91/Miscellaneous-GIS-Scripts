@@ -3,6 +3,7 @@ Contains python scripts to perform various tasks. Some are written as processing
 
 ## Aggregate OD Lines
 Aggregates Origin-Destination pair lines into groups based on user-supplied polygonal areas.
+![Explanation of OD Line Aggregation](FlowAggregationIllustration.png)
 
 ## Find Minimum Distance
 Processing script which returns the minimum distance between two points in a point layer.
