@@ -88,6 +88,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
             return None
 
         # generate OD matrix
+        feedback.setProgressText("Generating OD matrix from zones")
         zoneList = []
         zoneCentroids = dict()
         for feature in zoneLayer.getFeatures():
@@ -103,7 +104,10 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 odMatrix[o][d] = 0
 
         # loop through lines and aggregate the flows
-        for feature in lineLayer.getFeatures():
+        feedback.setProgressText("Aggregating OD lines")
+        nFeat = float(lineLayer.featureCount())
+        for i,feature in enumerate(lineLayer.getFeatures()):
+            feedback.setProgress(i/nFeat*100)
             pl = feature.geometry().asPolyline()  # Get the list of points on the line
             if len(pl) == 0:  # If the above line returns empty, try it as a MultLineString
                 pl = feature.geometry().asGeometryCollection()[0].asPolyline()
