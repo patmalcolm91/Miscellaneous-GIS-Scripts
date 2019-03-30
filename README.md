@@ -3,7 +3,7 @@ Contains python scripts to perform various tasks. Some are written as processing
 
 ## Aggregate OD Lines
 Aggregates Origin-Destination pair lines into groups based on user-supplied polygonal areas.
-![Explanation of OD Line Aggregation](FlowAggregationIllustration.png)
+![Explanation of OD Line Aggregation](images/FlowAggregationIllustration.png)
 ### Parameters
 * OD Line Layer: Layer containing the origin-destination pair lines.
 * Flow Field: Field in the line layer which contains the magnitude of the flows.
