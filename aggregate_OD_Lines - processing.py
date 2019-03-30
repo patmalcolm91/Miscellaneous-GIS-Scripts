@@ -21,7 +21,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         return QCoreApplication.translate("Aggregate OD Lines", text)
          
     def displayName(self):
-        return self.tr("Aggregate OD Lines")
+        return self.tr("AggregateODLines")
  
     def group(self):
         return self.tr("Travel Demand")
