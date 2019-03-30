@@ -4,6 +4,12 @@ Contains python scripts to perform various tasks. Some are written as processing
 ## Aggregate OD Lines
 Aggregates Origin-Destination pair lines into groups based on user-supplied polygonal areas.
 ![Explanation of OD Line Aggregation](FlowAggregationIllustration.png)
+### Parameters
+* OD Line Layer: Layer containing the origin-destination pair lines.
+* Flow Field: Field in the line layer which contains the magnitude of the flows.
+* Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
+* Zone Name Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output.
+* Discard Internal Trips: If checked, trips starting and ending in the same zone will be excluded from the output. If unchecked, these will be included in the output. Warning: these trips will be output as lines whose start and end points are the same.
 
 ## Find Minimum Distance
 Processing script which returns the minimum distance between two points in a point layer.
