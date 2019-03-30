@@ -9,7 +9,6 @@ class AggregateODLines(QgsProcessingAlgorithm):
     DISCARD_INTERNAL_TRIPS = 'Discard Internal Trips'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
-    FLOW_FIELD_OUTPUT = 'Flow'
     OUTPUT_LINELAYER_NAME = 'Aggregated Lines'
  
     def __init__(self):
@@ -76,7 +75,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
         outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
-        outputFields.append(QgsField(self.FLOW_FIELD_OUTPUT, QVariant.Int))
+        outputFields.append(QgsField(flowField, QVariant.Int))
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT_LINELAYER_NAME, context,
                                                outputFields,
                                                lineLayer.wkbType(), lineLayer.sourceCrs())
@@ -141,7 +140,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 feat.setFields(outputFields)
                 feat.setAttribute(self.FROM_FIELD, o)
                 feat.setAttribute(self.TO_FIELD, d)
-                feat.setAttribute(self.FLOW_FIELD_OUTPUT, odMatrix[o][d])
+                feat.setAttribute(flowField, odMatrix[o][d])
                 sink.addFeature(feat, QgsFeatureSink.FastInsert)
  
         return {self.OUTPUT_LINELAYER_NAME: dest_id}
