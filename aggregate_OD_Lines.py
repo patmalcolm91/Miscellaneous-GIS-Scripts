@@ -80,6 +80,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
         zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
         zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
+        discardInternalTrips = self.parameterAsBool(parameters, self.DISCARD_INTERNAL_TRIPS, context)
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
         outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
@@ -139,7 +140,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
             for d in zoneList:
                 if o is None or d is None or odMatrix[o][d] == 0:
                     continue
-                if o == d:
+                if o == d and discardInternalTrips:
                     continue
                 pt1 = zoneCentroids[o]
                 pt2 = zoneCentroids[d]
