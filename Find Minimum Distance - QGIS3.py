@@ -15,7 +15,7 @@ class FindMinimumDistance(QgsProcessingAlgorithm):
         return QCoreApplication.translate("FindMinimumDistance", text)
          
     def displayName(self):
-        return self.tr("FindMinimumDistance")
+        return self.tr("Find Minimum Distance")
  
     def group(self):
         return self.tr("Geometry")
