@@ -30,7 +30,15 @@ class AggregateODLines(QgsProcessingAlgorithm):
         return "travelDemand"
  
     def shortHelpString(self):
-        return self.tr("Aggregates OD Pair Lines based on supplied zones.")
+        return self.tr("""
+        Aggregates OD Pair Lines in the input based on supplied zones.
+        Parameters:
+        &bull; OD Line Layer: Layer containing the origin-destination pair lines.
+        &bull; Flow Field: Field in the line layer which contains the magnitude of the flows.
+        &bull; Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
+        &bull; Zone Name Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output.
+        &bull; Discard Internal Trips: If checked, trips starting and ending in the same zone will be excluded from the output. If unchecked, these will be included in the output. Warning: these trips will be output as lines whose start and end points are the same.
+        """)
  
     def helpUrl(self):
         return "https://qgis.org"
