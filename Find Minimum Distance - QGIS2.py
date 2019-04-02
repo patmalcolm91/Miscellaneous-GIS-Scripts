@@ -10,11 +10,12 @@ ptLayer = processing.getObject(input_layer)
 
 minDist = None
 featureCount = float(ptLayer.featureCount())
-for i,feature in enumerate(ptLayer.getFeatures()):
+features = ptLayer.getFeatures()
+for i,feature in enumerate(features):
     progress.setPercentage(i/featureCount*100)
-    for other in ptLayer.getFeatures():
-        if feature == other:
-            continue
+    for j,other in enumerate(features):
+        if j >= i:
+            break
         d = feature.geometry().asPoint().distance(other.geometry().asPoint())
         if (minDist is None or d < minDist) and d > 0:
             minDist = d
