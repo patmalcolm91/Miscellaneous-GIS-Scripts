@@ -86,20 +86,21 @@ class AggregateODLines(QgsProcessingAlgorithm):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
         flowField = self.parameterAsString(parameters, self.FLOW_FIELD, context)
         flowIdx = lineLayer.fields().indexFromName(flowField)
+        flowFieldDataType = lineLayer.fields().at(flowIdx).type()
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
         zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
         zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
         outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
-        outputFields.append(QgsField(flowField, QVariant.Int))
+        outputFields.append(QgsField(flowField, flowFieldDataType))
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT_LINELAYER_NAME, context,
                                                outputFields,
                                                lineLayer.wkbType(), lineLayer.sourceCrs())
         ptFields = zoneLayer.fields()
-        ptFields.append(QgsField(self.INTERNAL_FIELD, QVariant.Int))
-        ptFields.append(QgsField(self.IN_FIELD, QVariant.Int))
-        ptFields.append(QgsField(self.OUT_FIELD, QVariant.Int))
+        ptFields.append(QgsField(self.INTERNAL_FIELD, flowFieldDataType))
+        ptFields.append(QgsField(self.IN_FIELD, flowFieldDataType))
+        ptFields.append(QgsField(self.OUT_FIELD, flowFieldDataType))
         (ptSink, pt_dest_id) = self.parameterAsSink(parameters, self.OUTPUT_ZONE_CENTROIDS, context, ptFields,
                                                     QgsWkbTypes.Point, lineLayer.sourceCrs())
 
