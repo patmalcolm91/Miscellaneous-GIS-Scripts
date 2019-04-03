@@ -69,7 +69,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
             self.tr(self.AGGZNAME_FIELD),
             'Name',
             self.AGGZONE_LAYER,
-            QgsProcessingParameterField.String))
+            QgsProcessingParameterField.Any))
         self.addParameter(QgsProcessingParameterFeatureSink(
             self.OUTPUT_LINELAYER_NAME,
             self.tr(self.OUTPUT_LINELAYER_NAME),
@@ -90,9 +90,10 @@ class AggregateODLines(QgsProcessingAlgorithm):
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
         zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
         zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
+        zoneNameDataType = zoneLayer.fields().at(zoneNameIdx).type()
         outputFields = QgsFields()
-        outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
-        outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
+        outputFields.append(QgsField(self.FROM_FIELD, zoneNameDataType))
+        outputFields.append(QgsField(self.TO_FIELD,  zoneNameDataType))
         outputFields.append(QgsField(flowField, flowFieldDataType))
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT_LINELAYER_NAME, context,
                                                outputFields,
