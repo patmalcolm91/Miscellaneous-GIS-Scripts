@@ -1,3 +1,9 @@
+"""
+Returns the centroid of a multipoint feature as a point geometry. For use in QGIS expressions.
+Written for QGIS 3
+Author: Patrick Malcolm
+"""
+
 from qgis.core import *
 from qgis.gui import *
 
