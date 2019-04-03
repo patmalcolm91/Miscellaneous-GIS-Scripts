@@ -129,7 +129,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         for i,feature in enumerate(lineLayer.getFeatures()):
             feedback.setProgress(i/nFeat*100)
             pl = feature.geometry().asPolyline()  # Get the list of points on the line
-            if len(pl) == 0:  # If the above line returns empty, try it as a MultLineString
+            if len(pl) == 0:  # If the above line returns empty, try it as a MultiLineString
                 pl = feature.geometry().asGeometryCollection()[0].asPolyline()
             try:
                 startPoint = pl[0]
