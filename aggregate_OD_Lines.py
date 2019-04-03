@@ -5,7 +5,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
     FLOW_FIELD = 'Flow Field'
     AGGZONE_LAYER = 'Aggregation Zones Layer'
-    AGGZNAME_FIELD = 'Zone Name Field'
+    AGGZNAME_FIELD = 'Zone Unique ID Field'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
     NAME_FIELD = 'Name'
