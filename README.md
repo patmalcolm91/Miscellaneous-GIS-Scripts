@@ -15,13 +15,13 @@ Aggregates Origin-Destination pair lines into groups based on user-supplied poly
 Processing script which returns the minimum distance between two points in a point layer. Versions for both QGIS 2 and 3.
 
 ## Average of Multipoint
-For use in expressions. Returns the average point / centroid of a multipoint geometry.
+For use in expressions. Returns the average point / centroid of a multipoint geometry. QGIS 3 custom expression function.
 
 ## Match German Abbreviations
-For use in expressions. Evaluates if two strings match, taking common German abbreviations for place names and transportation points into account.
+For use in expressions. Evaluates if two strings match, taking common German abbreviations for place names and transportation points into account. QGIS 3 custom expression function.
 
 ## Number Selected Features
-Numbers the selected features in the active layer with an increasing index in the specified field.
+Numbers the selected features in the active layer with an increasing index in the specified field. Works in QGIS 2 and 3. Run from Python window while layer editing is enabled.
 
 ## Number Selected Features Group By Field
-Numbers each group of the selected features in the active layer which have matching group field values with an increasing index in the specified field.
+Numbers each group of the selected features in the active layer which have matching group field values with an increasing index in the specified field. Works in QGIS 3. Run from Python window while layer editing is enabled.
