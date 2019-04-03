@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Performs a fuzzy match test on two strings, taking common German abbreviations for place names and transportation points into account.
+For use with QGIS expressions.
+Written for QGIS 3
+Author: Patrick Malcolm
+"""
+
 import re
 
 @qgsfunction(args='auto', group='Custom', usesgeometry=False)
