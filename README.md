@@ -17,7 +17,7 @@ Processing script which returns the minimum distance between two points in a poi
 ## Average of Multipoint
 For use in expressions. Returns the average point / centroid of a multipoint geometry.
 
-## Match Abbreviations
+## Match German Abbreviations
 For use in expressions. Evaluates if two strings match, taking common German abbreviations for place names and transportation points into account.
 
 ## Number Selected Features
