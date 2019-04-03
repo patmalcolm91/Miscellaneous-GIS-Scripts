@@ -9,7 +9,7 @@ Aggregates Origin-Destination pair lines into groups based on user-supplied poly
 * Flow Field: Field in the line layer which contains the magnitude of the flows.
 * Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
 * Zone Name Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output.
-* Discard Internal Trips: If checked, trips starting and ending in the same zone will be excluded from the output. If unchecked, these will be included in the output. Warning: these trips will be output as lines whose start and end points are the same.
+* Zone Centroids: Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
 
 ## Find Minimum Distance
 Processing script which returns the minimum distance between two points in a point layer. Versions for both QGIS 2 and 3.

@@ -1,15 +1,19 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingException)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingException, QgsWkbTypes)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
     FLOW_FIELD = 'Flow Field'
     AGGZONE_LAYER = 'Aggregation Zones Layer'
     AGGZNAME_FIELD = 'Zone Name Field'
-    DISCARD_INTERNAL_TRIPS = 'Discard Internal Trips'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
+    NAME_FIELD = 'Name'
+    INTERNAL_FIELD = 'FlowInternal'
+    IN_FIELD = 'FlowInOther'
+    OUT_FIELD = 'FlowOutOther'
     OUTPUT_LINELAYER_NAME = 'Aggregated Lines'
+    OUTPUT_ZONE_CENTROIDS = 'Zone Centroids'
  
     def __init__(self):
         super().__init__()
@@ -37,7 +41,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         &bull; Flow Field: Field in the line layer which contains the magnitude of the flows.
         &bull; Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
         &bull; Zone Name Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output.
-        &bull; Discard Internal Trips: If checked, trips starting and ending in the same zone will be excluded from the output. If unchecked, these will be included in the output. Warning: these trips will be output as lines whose start and end points are the same.
+        &bull; Zone Centroids: Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
         """)
  
     def helpUrl(self):
@@ -65,13 +69,14 @@ class AggregateODLines(QgsProcessingAlgorithm):
             'Name',
             self.AGGZONE_LAYER,
             QgsProcessingParameterField.String))
-        self.addParameter(QgsProcessingParameterBoolean(self.DISCARD_INTERNAL_TRIPS,
-            self.tr(self.DISCARD_INTERNAL_TRIPS),
-            QVariant(True)))
         self.addParameter(QgsProcessingParameterFeatureSink(
             self.OUTPUT_LINELAYER_NAME,
             self.tr(self.OUTPUT_LINELAYER_NAME),
-            QgsProcessing.TypeVectorAnyGeometry))
+            QgsProcessing.TypeVectorLine))
+        self.addParameter(QgsProcessingParameterFeatureSink(
+            self.OUTPUT_ZONE_CENTROIDS,
+            self.tr(self.OUTPUT_ZONE_CENTROIDS),
+            QgsProcessing.TypeVectorPoint))
  
     def processAlgorithm(self, parameters, context, feedback):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
@@ -80,7 +85,6 @@ class AggregateODLines(QgsProcessingAlgorithm):
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
         zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
         zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
-        discardInternalTrips = self.parameterAsBool(parameters, self.DISCARD_INTERNAL_TRIPS, context)
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, QVariant.String))
         outputFields.append(QgsField(self.TO_FIELD,  QVariant.String))
@@ -88,6 +92,12 @@ class AggregateODLines(QgsProcessingAlgorithm):
         (sink, dest_id) = self.parameterAsSink(parameters, self.OUTPUT_LINELAYER_NAME, context,
                                                outputFields,
                                                lineLayer.wkbType(), lineLayer.sourceCrs())
+        ptFields = zoneLayer.fields()
+        ptFields.append(QgsField(self.INTERNAL_FIELD, QVariant.Int))
+        ptFields.append(QgsField(self.IN_FIELD, QVariant.Int))
+        ptFields.append(QgsField(self.OUT_FIELD, QVariant.Int))
+        (ptSink, pt_dest_id) = self.parameterAsSink(parameters, self.OUTPUT_ZONE_CENTROIDS, context, ptFields,
+                                                    QgsWkbTypes.Point, lineLayer.sourceCrs())
 
         def getContainingZone(pt):
             for feature in zoneLayer.getFeatures():
@@ -99,11 +109,13 @@ class AggregateODLines(QgsProcessingAlgorithm):
         feedback.setProgressText("Generating OD matrix from zones")
         zoneList = []
         zoneCentroids = dict()
+        zoneFieldValues = dict()
         for feature in zoneLayer.getFeatures():
             zName = feature.attributes()[zoneNameIdx]
             if zName not in zoneList:
                 zoneList.append(zName)
                 zoneCentroids[zName] = feature.geometry().centroid().asPoint()
+                zoneFieldValues[zName] = feature.attributes()
         zoneList.append(None)
         odMatrix = dict()
         for o in zoneList:
@@ -135,12 +147,17 @@ class AggregateODLines(QgsProcessingAlgorithm):
                     endName = endZone.attributes()[zoneNameIdx]
                 odMatrix[startName][endName] += flow
 
-        # Write the aggregated lines
+        # Write the points and aggregated lines
         for o in zoneList:
+            if o is None:
+                continue
+            pt = QgsFeature()
+            pt.setGeometry(QgsGeometry.fromPointXY(zoneCentroids[o]))
+            pt.setFields(ptFields)
+            pt.setAttributes(zoneFieldValues[o] + [odMatrix[o][o], odMatrix[None][o], odMatrix[o][None]])
+            ptSink.addFeature(pt)
             for d in zoneList:
-                if o is None or d is None or odMatrix[o][d] == 0:
-                    continue
-                if o == d and discardInternalTrips:
+                if d is None or o == d or odMatrix[o][d] == 0:
                     continue
                 pt1 = zoneCentroids[o]
                 pt2 = zoneCentroids[d]
@@ -152,4 +169,5 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 feat.setAttribute(flowField, odMatrix[o][d])
                 sink.addFeature(feat, QgsFeatureSink.FastInsert)
  
-        return {self.OUTPUT_LINELAYER_NAME: dest_id}
+        return {self.OUTPUT_LINELAYER_NAME: dest_id,
+                self.OUTPUT_ZONE_CENTROIDS: pt_dest_id}
