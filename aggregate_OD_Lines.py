@@ -8,7 +8,6 @@ class AggregateODLines(QgsProcessingAlgorithm):
     AGGZNAME_FIELD = 'Zone Unique ID Field'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
-    NAME_FIELD = 'Name'
     INTERNAL_FIELD = 'FlowInternal'
     IN_FIELD = 'FlowInOther'
     OUT_FIELD = 'FlowOutOther'
@@ -41,7 +40,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         &bull; OD Line Layer: Layer containing the origin-destination pair lines.
         &bull; Flow Field: Field in the line layer which contains the magnitude of the flows.
         &bull; Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
-        &bull; Zone Name Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output.
+        &bull; Zone Unique ID Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output. If omitted, FID is used.
         &bull; Zone Centroids: Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
         """)
  
@@ -67,9 +66,11 @@ class AggregateODLines(QgsProcessingAlgorithm):
             [QgsProcessing.TypeVectorPolygon]))
         self.addParameter(QgsProcessingParameterField(self.AGGZNAME_FIELD,
             self.tr(self.AGGZNAME_FIELD),
-            'Name',
+            None,
             self.AGGZONE_LAYER,
-            QgsProcessingParameterField.Any))
+            QgsProcessingParameterField.Any,
+            False,
+            True))
         self.addParameter(QgsProcessingParameterFeatureSink(
             self.OUTPUT_LINELAYER_NAME,
             self.tr(self.OUTPUT_LINELAYER_NAME),
@@ -89,8 +90,12 @@ class AggregateODLines(QgsProcessingAlgorithm):
         flowFieldDataType = lineLayer.fields().at(flowIdx).type()
         zoneLayer = self.parameterAsSource(parameters, self.AGGZONE_LAYER, context)
         zoneNameField = self.parameterAsString(parameters, self.AGGZNAME_FIELD, context)
-        zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
-        zoneNameDataType = zoneLayer.fields().at(zoneNameIdx).type()
+        if zoneNameField != '':
+            zoneNameIdx = zoneLayer.fields().indexFromName(zoneNameField)
+            zoneNameDataType = zoneLayer.fields().at(zoneNameIdx).type()
+        else:
+            zoneNameIdx = None
+            zoneNameDataType = QVariant.Int
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, zoneNameDataType))
         outputFields.append(QgsField(self.TO_FIELD,  zoneNameDataType))
@@ -117,7 +122,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         zoneCentroids = dict()
         zoneFieldValues = dict()
         for feature in zoneLayer.getFeatures():
-            zName = feature.attributes()[zoneNameIdx]
+            zName = feature.attributes()[zoneNameIdx] if zoneNameIdx is not None else feature.id()
             if zName not in zoneList:
                 zoneList.append(zName)
                 zoneCentroids[zName] = feature.geometry().centroid().asPoint()
@@ -151,9 +156,9 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 endZone = getContainingZone(endPoint)
                 startName, endName = None, None
                 if startZone is not None and startZone != '':
-                    startName = startZone.attributes()[zoneNameIdx]
+                    startName = startZone.attributes()[zoneNameIdx] if zoneNameIdx is not None else startZone.id()
                 if endZone is not None and endZone != '':
-                    endName = endZone.attributes()[zoneNameIdx]
+                    endName = endZone.attributes()[zoneNameIdx] if zoneNameIdx is not None else endZone.id()
                 odMatrix[startName][endName] += flow
 
         # Write the points and aggregated lines
