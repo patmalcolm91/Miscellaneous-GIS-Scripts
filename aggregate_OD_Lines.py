@@ -120,6 +120,9 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 zoneList.append(zName)
                 zoneCentroids[zName] = feature.geometry().centroid().asPoint()
                 zoneFieldValues[zName] = feature.attributes()
+            else:
+                raise QgsProcessingException("Zone name field is not unique. Name '" +
+                                             str(zName) + "' appears more than once")
         zoneList.append(None)
         odMatrix = dict()
         for o in zoneList:
