@@ -2,7 +2,7 @@
 Contains python scripts to perform various tasks. Some are written as processing scripts, others are meant to be loaded for use in Expressions (e.g. for use with the Field Calculator), and others are meant to simply be run from the python window in QGIS.
 
 ## Aggregate OD Lines
-Aggregates Origin-Destination pair lines into groups based on user-supplied polygonal areas.
+Aggregates Origin-Destination pair lines into groups based on user-supplied polygonal areas. QGIS 3 processing script.
 ![Explanation of OD Line Aggregation](images/FlowAggregationIllustration.png)
 ### Parameters
 * OD Line Layer: Layer containing the origin-destination pair lines.
@@ -12,7 +12,7 @@ Aggregates Origin-Destination pair lines into groups based on user-supplied poly
 * Discard Internal Trips: If checked, trips starting and ending in the same zone will be excluded from the output. If unchecked, these will be included in the output. Warning: these trips will be output as lines whose start and end points are the same.
 
 ## Find Minimum Distance
-Processing script which returns the minimum distance between two points in a point layer.
+Processing script which returns the minimum distance between two points in a point layer. Versions for both QGIS 2 and 3.
 
 ## Average of Multipoint
 For use in expressions. Returns the average point / centroid of a multipoint geometry.
