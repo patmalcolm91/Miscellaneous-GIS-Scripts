@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingException, QgsWkbTypes)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
@@ -14,6 +14,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
     OUT_FIELD = 'FlowOutOther'
     OUTPUT_LINELAYER_NAME = 'Aggregated Lines'
     OUTPUT_ZONE_CENTROIDS = 'Zone Centroids'
+    OUTPUT_IGNORED_FLOWS = 'Ignored Flows'
  
     def __init__(self):
         super().__init__()
@@ -77,6 +78,9 @@ class AggregateODLines(QgsProcessingAlgorithm):
             self.OUTPUT_ZONE_CENTROIDS,
             self.tr(self.OUTPUT_ZONE_CENTROIDS),
             QgsProcessing.TypeVectorPoint))
+        self.addOutput(QgsProcessingOutputNumber(
+            self.OUTPUT_IGNORED_FLOWS,
+            self.tr(self.OUTPUT_IGNORED_FLOWS)))
  
     def processAlgorithm(self, parameters, context, feedback):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
@@ -170,4 +174,5 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 sink.addFeature(feat, QgsFeatureSink.FastInsert)
  
         return {self.OUTPUT_LINELAYER_NAME: dest_id,
-                self.OUTPUT_ZONE_CENTROIDS: pt_dest_id}
+                self.OUTPUT_ZONE_CENTROIDS: pt_dest_id,
+                self.OUTPUT_IGNORED_FLOWS: odMatrix[None][None]}
