@@ -13,6 +13,10 @@ def matchGermanAbbreviations(text1, text2, feature, parent):
         replacements = {
             " ": r"[ \t\n]*",
             "-": r"(-| )",
+            "ä": r"(ä|ae)",
+            "ö": r"(ö|oe)",
+            "ü": r"(ü|ue)",
+            "ß": r"(ß|ss)",
             ".": r"(.|[a-zäüöß]*[.]?[ ]*)",
             ",": r"[, ]*",
             "Bf": r"(Bf|Bahnhof)",
