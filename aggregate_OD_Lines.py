@@ -41,7 +41,8 @@ class AggregateODLines(QgsProcessingAlgorithm):
         &bull; Flow Field: Field in the line layer which contains the magnitude of the flows.
         &bull; Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
         &bull; Zone Unique ID Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output. If omitted, FID is used.
-        &bull; Zone Centroids: Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
+        &bull; Aggregated Lines (Output): Lines between zone centroids containing the sum of the aggregated flow lines between the respective zones.
+        &bull; Zone Centroids (Output): Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
         """)
  
     def helpUrl(self):
