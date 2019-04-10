@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes, QgsSpatialIndex, QgsPoint)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes, QgsSpatialIndex, QgsPoint, QgsPointXY)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
@@ -121,6 +121,13 @@ class AggregateODLines(QgsProcessingAlgorithm):
         else:
             zoneNameIdx = None
             zoneNameDataType = QVariant.Int
+        xField = self.parameterAsString(parameters, self.CENTROID_X_FIELD, context)
+        yField = self.parameterAsString(parameters, self.CENTROID_Y_FIELD, context)
+        if xField is None or xField == "":
+            xIdx, yIdx = None, None
+        else:
+            xIdx = zoneLayer.fields().indexFromName(xField)
+            yIdx = zoneLayer.fields().indexFromName(yField)
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, zoneNameDataType))
         outputFields.append(QgsField(self.TO_FIELD,  zoneNameDataType))
@@ -157,8 +164,10 @@ class AggregateODLines(QgsProcessingAlgorithm):
             zName = feature.attributes()[zoneNameIdx] if zoneNameIdx is not None else feature.id()
             if zName not in zoneList:
                 zoneList.append(zName)
-                zoneCentroids[zName] = feature.geometry().centroid().asPoint()
                 zoneFieldValues[zName] = feature.attributes()
+                xCoord = feature.attributes()[xIdx] if xIdx is not None else feature.geometry().centroid().asPoint().x()
+                yCoord = feature.attributes()[yIdx] if yIdx is not None else feature.geometry().centroid().asPoint().y()
+                zoneCentroids[zName] = QgsPointXY(xCoord, yCoord)
             else:
                 raise QgsProcessingException("Zone name field is not unique. Name '" +
                                              str(zName) + "' appears more than once")
