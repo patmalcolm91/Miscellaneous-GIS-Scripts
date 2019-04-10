@@ -46,7 +46,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         """)
  
     def helpUrl(self):
-        return "https://qgis.org"
+        return "https://github.com/patmalcolm91/Miscellaneous-GIS-Scripts/blob/master/README.md"
          
     def createInstance(self):
         return AggregateODLines()
