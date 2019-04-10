@@ -99,6 +99,14 @@ class AggregateODLines(QgsProcessingAlgorithm):
         self.addOutput(QgsProcessingOutputNumber(
             self.OUTPUT_IGNORED_FLOWS,
             self.tr(self.OUTPUT_IGNORED_FLOWS)))
+
+    def checkParameterValues(self, parameters, context):
+        xVal = self.parameterAsString(parameters, self.CENTROID_X_FIELD, context)
+        yVal = self.parameterAsString(parameters, self.CENTROID_Y_FIELD, context)
+        if (xVal is None or xVal == "") != (yVal is None or yVal == ""):
+            message = "Either both or neither centroid override coordinates must be provided."
+            return False, message
+        return True, None
  
     def processAlgorithm(self, parameters, context, feedback):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
