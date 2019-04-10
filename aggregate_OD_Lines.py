@@ -1,5 +1,5 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes, QgsSpatialIndex, QgsPoint)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
@@ -111,8 +111,13 @@ class AggregateODLines(QgsProcessingAlgorithm):
         (ptSink, pt_dest_id) = self.parameterAsSink(parameters, self.OUTPUT_ZONE_CENTROIDS, context, ptFields,
                                                     QgsWkbTypes.Point, lineLayer.sourceCrs())
 
+        spatialIndex = QgsSpatialIndex()
+        zoneFeatures = dict()
+
         def getContainingZone(pt):
-            for feature in zoneLayer.getFeatures():
+            candidateIDs = spatialIndex.intersects(QgsPoint(pt.x(), pt.y()).boundingBox())
+            candidates = [zoneFeatures[i] for i in candidateIDs]
+            for feature in candidates:
                 if feature.geometry().contains(pt):
                     return feature
             return None
@@ -123,6 +128,8 @@ class AggregateODLines(QgsProcessingAlgorithm):
         zoneCentroids = dict()
         zoneFieldValues = dict()
         for feature in zoneLayer.getFeatures():
+            zoneFeatures[feature.id()] = feature
+            spatialIndex.insertFeature(feature)
             zName = feature.attributes()[zoneNameIdx] if zoneNameIdx is not None else feature.id()
             if zName not in zoneList:
                 zoneList.append(zName)
