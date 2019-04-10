@@ -49,7 +49,7 @@ class AggregateODLines(QgsProcessingAlgorithm):
         return "https://qgis.org"
          
     def createInstance(self):
-        return type(self)()
+        return AggregateODLines()
    
     def initAlgorithm(self, config=None):
         self.addParameter(QgsProcessingParameterFeatureSource(
