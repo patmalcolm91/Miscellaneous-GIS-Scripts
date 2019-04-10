@@ -8,7 +8,7 @@ Author: Patrick Malcolm
 
 import re
 
-@qgsfunction(args='auto', group='Custom', usesgeometry=False)
+@qgsfunction(args='auto', group='Fuzzy Matching', usesgeometry=False)
 def matchGermanAbbreviations(text1, text2, feature, parent):
     """Returns true if two strings match. Takes German abbreviations into account."""
     if text1 == text2:
