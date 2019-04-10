@@ -6,6 +6,8 @@ class AggregateODLines(QgsProcessingAlgorithm):
     FLOW_FIELD = 'Flow Field'
     AGGZONE_LAYER = 'Aggregation Zones Layer'
     AGGZNAME_FIELD = 'Zone Unique ID Field'
+    CENTROID_X_FIELD = 'Centroid Override X'
+    CENTROID_Y_FIELD = 'Centroid Override Y'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
     INTERNAL_FIELD = 'FlowInternal'
@@ -70,6 +72,20 @@ class AggregateODLines(QgsProcessingAlgorithm):
             None,
             self.AGGZONE_LAYER,
             QgsProcessingParameterField.Any,
+            False,
+            True))
+        self.addParameter(QgsProcessingParameterField(self.CENTROID_X_FIELD,
+            self.tr(self.CENTROID_X_FIELD),
+            None,
+            self.AGGZONE_LAYER,
+            QgsProcessingParameterField.Numeric,
+            False,
+            True))
+        self.addParameter(QgsProcessingParameterField(self.CENTROID_Y_FIELD,
+            self.tr(self.CENTROID_Y_FIELD),
+            None,
+            self.AGGZONE_LAYER,
+            QgsProcessingParameterField.Numeric,
             False,
             True))
         self.addParameter(QgsProcessingParameterFeatureSink(
