@@ -1,11 +1,13 @@
 from qgis.PyQt.QtCore import QCoreApplication, QVariant
-from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes, QgsSpatialIndex, QgsPoint)
+from qgis.core import (QgsField, QgsFields, QgsFeature, QgsGeometry, QgsFeatureSink, QgsFeatureRequest, QgsProcessing, QgsProcessingAlgorithm, QgsProcessingParameterFeatureSource, QgsProcessingParameterFeatureSink, QgsProcessingParameterField, QgsProcessingParameterBoolean, QgsProcessingOutputNumber, QgsProcessingException, QgsWkbTypes, QgsSpatialIndex, QgsPoint, QgsPointXY)
                        
 class AggregateODLines(QgsProcessingAlgorithm):
     LINE_LAYER = 'OD Line Layer'
     FLOW_FIELD = 'Flow Field'
     AGGZONE_LAYER = 'Aggregation Zones Layer'
     AGGZNAME_FIELD = 'Zone Unique ID Field'
+    CENTROID_X_FIELD = 'Centroid Override X'
+    CENTROID_Y_FIELD = 'Centroid Override Y'
     FROM_FIELD = 'From'
     TO_FIELD = 'To'
     INTERNAL_FIELD = 'FlowInternal'
@@ -41,6 +43,8 @@ class AggregateODLines(QgsProcessingAlgorithm):
         &bull; Flow Field: Field in the line layer which contains the magnitude of the flows.
         &bull; Aggregation Zones Layer: Polygon layer containing the zones into which to aggregate the flows.
         &bull; Zone Unique ID Field: Field in the zone layer containing a unique name for each zone. This is used to populate the "from" and "to" fields in the output. If omitted, FID is used.
+        &bull; Centroid Override X: Field with an x coordinate for the zone. Optional. Null values will be replaced with the actual centroid coordinate.
+        &bull; Centroid Override Y: See 'Centroid Override X'
         &bull; Aggregated Lines (Output): Lines between zone centroids containing the sum of the aggregated flow lines between the respective zones.
         &bull; Zone Centroids (Output): Centroid of the zone layers with all of the zone fields, plus fields showing internal flows and flows into / out of the zone to / from no other zone.
         """)
@@ -72,6 +76,20 @@ class AggregateODLines(QgsProcessingAlgorithm):
             QgsProcessingParameterField.Any,
             False,
             True))
+        self.addParameter(QgsProcessingParameterField(self.CENTROID_X_FIELD,
+            self.tr(self.CENTROID_X_FIELD),
+            None,
+            self.AGGZONE_LAYER,
+            QgsProcessingParameterField.Numeric,
+            False,
+            True))
+        self.addParameter(QgsProcessingParameterField(self.CENTROID_Y_FIELD,
+            self.tr(self.CENTROID_Y_FIELD),
+            None,
+            self.AGGZONE_LAYER,
+            QgsProcessingParameterField.Numeric,
+            False,
+            True))
         self.addParameter(QgsProcessingParameterFeatureSink(
             self.OUTPUT_LINELAYER_NAME,
             self.tr(self.OUTPUT_LINELAYER_NAME),
@@ -83,6 +101,14 @@ class AggregateODLines(QgsProcessingAlgorithm):
         self.addOutput(QgsProcessingOutputNumber(
             self.OUTPUT_IGNORED_FLOWS,
             self.tr(self.OUTPUT_IGNORED_FLOWS)))
+
+    def checkParameterValues(self, parameters, context):
+        xVal = self.parameterAsString(parameters, self.CENTROID_X_FIELD, context)
+        yVal = self.parameterAsString(parameters, self.CENTROID_Y_FIELD, context)
+        if (xVal is None or xVal == "") != (yVal is None or yVal == ""):
+            message = "Either both or neither centroid override coordinates must be provided."
+            return False, message
+        return True, None
  
     def processAlgorithm(self, parameters, context, feedback):
         lineLayer = self.parameterAsSource(parameters, self.LINE_LAYER, context)
@@ -97,6 +123,13 @@ class AggregateODLines(QgsProcessingAlgorithm):
         else:
             zoneNameIdx = None
             zoneNameDataType = QVariant.Int
+        xField = self.parameterAsString(parameters, self.CENTROID_X_FIELD, context)
+        yField = self.parameterAsString(parameters, self.CENTROID_Y_FIELD, context)
+        if xField is None or xField == "":
+            xIdx, yIdx = None, None
+        else:
+            xIdx = zoneLayer.fields().indexFromName(xField)
+            yIdx = zoneLayer.fields().indexFromName(yField)
         outputFields = QgsFields()
         outputFields.append(QgsField(self.FROM_FIELD, zoneNameDataType))
         outputFields.append(QgsField(self.TO_FIELD,  zoneNameDataType))
@@ -133,8 +166,15 @@ class AggregateODLines(QgsProcessingAlgorithm):
             zName = feature.attributes()[zoneNameIdx] if zoneNameIdx is not None else feature.id()
             if zName not in zoneList:
                 zoneList.append(zName)
-                zoneCentroids[zName] = feature.geometry().centroid().asPoint()
                 zoneFieldValues[zName] = feature.attributes()
+                xCoord = feature.attributes()[xIdx] if xIdx is not None else None
+                xCoord = xCoord if type(xCoord) in [int(), float()] else feature.geometry().centroid().asPoint().x()
+                yCoord = feature.attributes()[yIdx] if yIdx is not None else None
+                yCoord = yCoord if type(yCoord) in [int(), float()] else feature.geometry().centroid().asPoint().y()
+                zoneCentroids[zName] = QgsPointXY(xCoord, yCoord)
+                if not feature.geometry().contains(zoneCentroids[zName]):
+                    feedback.reportError("Warning: Centroid of Zone " + str(zName) +
+                                         " is outside of zone.", fatalError=False)
             else:
                 raise QgsProcessingException("Zone name field is not unique. Name '" +
                                              str(zName) + "' appears more than once")
