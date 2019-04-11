@@ -172,6 +172,9 @@ class AggregateODLines(QgsProcessingAlgorithm):
                 yCoord = feature.attributes()[yIdx] if yIdx is not None else None
                 yCoord = yCoord if type(yCoord) in [int(), float()] else feature.geometry().centroid().asPoint().y()
                 zoneCentroids[zName] = QgsPointXY(xCoord, yCoord)
+                if not feature.geometry().contains(zoneCentroids[zName]):
+                    feedback.reportError("Warning: Centroid of Zone " + str(zName) +
+                                         " is outside of zone.", fatalError=False)
             else:
                 raise QgsProcessingException("Zone name field is not unique. Name '" +
                                              str(zName) + "' appears more than once")
