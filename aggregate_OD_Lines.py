@@ -166,11 +166,16 @@ class AggregateODLines(QgsProcessingAlgorithm):
             zName = feature.attributes()[zoneNameIdx] if zoneNameIdx is not None else feature.id()
             if zName not in zoneList:
                 zoneList.append(zName)
-                zoneFieldValues[zName] = feature.attributes()
-                xCoord = feature.attributes()[xIdx] if xIdx is not None else None
-                xCoord = xCoord if type(xCoord) in [int, float] else feature.geometry().centroid().asPoint().x()
-                yCoord = feature.attributes()[yIdx] if yIdx is not None else None
-                yCoord = yCoord if type(yCoord) in [int, float] else feature.geometry().centroid().asPoint().y()
+                attr = feature.attributes()
+                zoneFieldValues[zName] = attr
+                if xIdx is not None and type(attr[xIdx]) in [int, float]:
+                    xCoord = attr[xIdx]
+                else:
+                    xCoord = feature.geometry().centroid().asPoint().x()
+                if yIdx is not None and type(attr[yIdx]) in [int, float]:
+                    yCoord = attr[yIdx]
+                else:
+                    yCoord = feature.geometry().centroid().asPoint().y()
                 zoneCentroids[zName] = QgsPointXY(xCoord, yCoord)
                 if not feature.geometry().contains(zoneCentroids[zName]):
                     feedback.reportError("Warning: Centroid of Zone " + str(zName) +
